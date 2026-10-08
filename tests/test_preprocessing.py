@@ -1,24 +1,61 @@
-from src.preprocessing import load_data, prepare_data, create_preprocessor
+from src.preprocessing import (
+    load_data,
+    prepare_data,
+    create_preprocessor,
+)
 
 
-# Load data
-df = load_data("data/heart.csv")
+def test_load_data():
+    df = load_data("data/heart.csv")
 
-print("Original shape:", df.shape)
+    assert df.shape == (920, 16)
 
-# Prepare features and target
-X, y = prepare_data(df)
 
-print("Feature shape:", X.shape)
-print("Target shape:", y.shape)
+def test_prepare_data():
+    df = load_data("data/heart.csv")
 
-print("\nTarget distribution:")
-print(y.value_counts())
+    X, y = prepare_data(df)
 
-print("\nFeatures:")
-print(X.columns.tolist())
+    assert X.shape == (920, 13)
+    assert len(y) == 920
 
-# Create preprocessing pipeline
-preprocessor = create_preprocessor(X)
 
-print("\nPreprocessor created successfully.")
+def test_target_is_binary():
+    df = load_data("data/heart.csv")
+
+    X, y = prepare_data(df)
+
+    assert set(y.unique()) == {0, 1}
+
+
+def test_removed_columns():
+    df = load_data("data/heart.csv")
+
+    X, y = prepare_data(df)
+
+    assert "id" not in X.columns
+    assert "dataset" not in X.columns
+    assert "num" not in X.columns
+
+
+def test_preprocessor_creation():
+    df = load_data("data/heart.csv")
+
+    X, y = prepare_data(df)
+
+    preprocessor = create_preprocessor(X)
+
+    assert preprocessor is not None
+
+
+def test_preprocessor_transformation():
+    df = load_data("data/heart.csv")
+
+    X, y = prepare_data(df)
+
+    preprocessor = create_preprocessor(X)
+
+    X_transformed = preprocessor.fit_transform(X)
+
+    assert X_transformed.shape[0] == 920
+    assert X_transformed.shape[1] > 0
