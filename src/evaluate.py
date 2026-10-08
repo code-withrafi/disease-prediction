@@ -1,3 +1,5 @@
+import os
+
 import pandas as pd
 
 from sklearn.metrics import (
@@ -28,22 +30,32 @@ def calculate_specificity(y_true, y_pred):
 
 def evaluate_models():
     """
-    Training and evaluating all models.
+    Train and evaluate all models.
+
+    Results are printed and saved to:
+        reports/model_comparison.csv
     """
 
     trained_models, X_train, X_test, y_train, y_test = main()
 
     results = []
 
+    # Create reports directory if it does not exist
+    os.makedirs("reports", exist_ok=True)
+
     for name, model in trained_models.items():
 
-        # Class predictions using default threshold = 0.50
+        # Default classification threshold = 0.50
         y_pred = model.predict(X_test)
 
         # Probability of disease
         y_probability = model.predict_proba(X_test)[:, 1]
 
-        accuracy = accuracy_score(y_test, y_pred)
+        # Calculate metrics
+        accuracy = accuracy_score(
+            y_test,
+            y_pred
+        )
 
         precision = precision_score(
             y_test,
@@ -97,7 +109,16 @@ def evaluate_models():
         print("\nConfusion Matrix:")
         print(confusion_matrix(y_test, y_pred))
 
+    # Convert results to DataFrame
     results_df = pd.DataFrame(results)
+
+    # Save results
+    output_path = "reports/model_comparison.csv"
+
+    results_df.to_csv(
+        output_path,
+        index=False
+    )
 
     print("\n" + "=" * 60)
     print("MODEL COMPARISON")
@@ -106,6 +127,10 @@ def evaluate_models():
     print(
         results_df.round(4).to_string(index=False)
     )
+
+    print(f"\nResults saved to: {output_path}")
+
+    return results_df
 
 
 if __name__ == "__main__":
